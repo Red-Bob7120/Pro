@@ -1,12 +1,21 @@
-import "./Body.css";
+import React from 'react';
+import{useState} from "react"; 
 
 function Body(){
-    const num =20;
+    const[text,setText] = useState("");
+
+    const handleOnchage=(e)=>{
+        setText(e.target.value);
+    };
+    
+    const handleOnClick = () =>{
+        alert(text);
+    }
     return (
-        <div className ="body">
-            <h1>Body</h1>
+        <div>
+            <input value ={text} onChange ={handleOnchage}/>
+            <button onClick={handleOnClick}>작성 완료</button>
         </div>
     );
 }
-
 export default Body;
