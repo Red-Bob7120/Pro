@@ -1,0 +1,6 @@
+/* 변환 결과 제목 */
+.App .ConversionResult h1 {
+  border-bottom: gray 2px solid;
+  display: inline-flex;
+  margin-left: 20px;
+}
