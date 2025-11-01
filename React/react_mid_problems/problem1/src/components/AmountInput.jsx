@@ -1,9 +1,10 @@
 import "./AmountInput.css";
 import { useState } from "react";
 
-export default function AmountInput({amount,setAmount}) 
-{
-    const[amount,setAmount]=useState(1000);
+
+export default function AmountInput({amount,setAmount}){
+
+   
     return(
         <div className="App">
             <h2>

@@ -5,7 +5,7 @@ function CurrencySelector({ rates, onRateChange, onConvert }) {
     <section className="CurrencySelector">
       <div className="CurrencyOption">
         <input
-          type="numbers"
+          type="number"
           step="0.0001"
           value={rates.USD}
           onChange={(e) => onRateChange("USD", e.target.value)}
@@ -15,7 +15,7 @@ function CurrencySelector({ rates, onRateChange, onConvert }) {
 
       <div className="CurrencyOption">
         <input
-          type="numbers"
+          type="number"
           step="0.0001"
           value={rates.EUR}
           onChange={(e) => onRateChange("EUR", e.target.value)}
@@ -25,7 +25,7 @@ function CurrencySelector({ rates, onRateChange, onConvert }) {
 
       <div className="CurrencyOption">
         <input
-          type="numbers"
+          type="number"
           step="0.01"
           value={rates.JPY}
           onChange={(e) => onRateChange("JPY", e.target.value)}
