@@ -1,10 +1,7 @@
-import { useState, useRef } from "react";
+import { useReducer, useRef } from "react";
 import Header from "./components/Header.jsx";
 import TodoEditor from "./components/TodoEditor.jsx";
 import Todolist from "./components/Todolist.jsx";
-import TestComp from "./components/TestComp.jsx"; 
-
-
 import "./App.css";
 
 const mockTodo = [
@@ -13,38 +10,54 @@ const mockTodo = [
   { id: 2, isDone: false, content: "노래 연습하기", createdDate: Date.now() },
 ];
 
+function reducer(state, action) {
+  switch (action.type) {
+    case "CREATE":
+      return [action.newItem, ...state];
+    case "UPDATE":
+      return state.map((it) =>
+        it.id === action.targetId ? { ...it, isDone: !it.isDone } : it
+      );
+    case "DELETE":
+      return state.filter((it) => it.id !== action.targetId);
+    default:
+      return state;
+  }
+}
+
 function App() {
   const idRef = useRef(3);
-  const [todo, setTodo] = useState(mockTodo);
-
-
-
-  const onUpdate = (targetId) => {
-    setTodo((prev) =>
-      prev.map((it) =>
-        it.id === targetId ? { ...it, isDone: !it.isDone } : it
-      )
-    );
-  };
+  const [todo, dispatch] = useReducer(reducer, mockTodo);
 
   const onCreate = (content) => {
-    const newItem = {
-      id: idRef.current,
-      content,
-      isDone: false,
-      createdDate: Date.now(),
-    };
-    setTodo((prev) => [newItem, ...prev]);
+    dispatch({
+      type: "CREATE",
+      newItem: {
+        id: idRef.current,
+        content,
+        isDone: false,
+        createdDate: new Date().getTime()
+      },
+    });
     idRef.current += 1;
   };
 
+  const onUpdate = (targetId) => {
+    dispatch({
+      type: "UPDATE",
+      targetId,
+    });
+  };
+
   const onDelete = (targetId) => {
-    setTodo((prev) => prev.filter((it) => it.id !== targetId));
+    dispatch({
+      type: "DELETE",
+      targetId,
+    });
   };
 
   return (
     <div className="App">
-      <TestComp/>
       <Header />
       <TodoEditor onCreate={onCreate} />
       <Todolist todo={todo} onUpdate={onUpdate} onDelete={onDelete} />
