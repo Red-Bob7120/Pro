@@ -1,4 +1,4 @@
-import { useReducer, useRef } from "react";
+import {  useCallback, useReducer, useRef } from "react";
 import Header from "./components/Header.jsx";
 import TodoEditor from "./components/TodoEditor.jsx";
 import Todolist from "./components/Todolist.jsx";
@@ -42,19 +42,19 @@ function App() {
     idRef.current += 1;
   };
 
-  const onUpdate = (targetId) => {
+  const onUpdate = useCallback((targetId) => {
     dispatch({
       type: "UPDATE",
       targetId,
     });
-  };
+  },[]);
 
-  const onDelete = (targetId) => {
+  const onDelete = useCallback((targetId) => {
     dispatch({
       type: "DELETE",
       targetId,
     });
-  };
+  },[]);
 
   return (
     <div className="App">
