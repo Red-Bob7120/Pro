@@ -2,6 +2,9 @@ import { useState, useRef } from "react";
 import Header from "./components/Header.jsx";
 import TodoEditor from "./components/TodoEditor.jsx";
 import Todolist from "./components/Todolist.jsx";
+import TestComp from "./components/TestComp.jsx"; 
+
+
 import "./App.css";
 
 const mockTodo = [
@@ -14,7 +17,8 @@ function App() {
   const idRef = useRef(3);
   const [todo, setTodo] = useState(mockTodo);
 
-  // 완료 토글
+
+
   const onUpdate = (targetId) => {
     setTodo((prev) =>
       prev.map((it) =>
@@ -23,7 +27,6 @@ function App() {
     );
   };
 
-  // 항목 추가
   const onCreate = (content) => {
     const newItem = {
       id: idRef.current,
@@ -35,13 +38,13 @@ function App() {
     idRef.current += 1;
   };
 
-  // (권장) 항목 삭제
   const onDelete = (targetId) => {
     setTodo((prev) => prev.filter((it) => it.id !== targetId));
   };
 
   return (
     <div className="App">
+      <TestComp/>
       <Header />
       <TodoEditor onCreate={onCreate} />
       <Todolist todo={todo} onUpdate={onUpdate} onDelete={onDelete} />
