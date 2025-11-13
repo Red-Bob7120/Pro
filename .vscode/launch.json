@@ -2,17 +2,34 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "ICloudFinalApp_Full",
+            "request": "launch",
+            "mainClass": "ICloudFinalApp_Full",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "ICloudFinalApp",
+            "request": "launch",
+            "mainClass": "ICloudFinalApp",
+            "projectName": ""
+        },
+        {
             "name": "C++ 실행",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/file_renamer", 
-            "args": ["${workspaceFolder}/test_folder", "사진"], 
+            "program": "${workspaceFolder}/file_renamer",
+            "args": [
+                "${workspaceFolder}/test_folder",
+                "사진"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb", 
+            "miDebuggerPath": "/usr/bin/gdb",
             "setupCommands": [
                 {
                     "description": "gdb pretty-printing 활성화",

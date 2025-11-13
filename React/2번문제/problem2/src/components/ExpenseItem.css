@@ -1,0 +1,68 @@
+/* 수입/지출 항목 카드 스타일 */
+.ExpenseItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 0px;
+  border-bottom: 1px solid rgb(240, 240, 240);
+}
+
+/* 수입/지출 타입 라벨 */
+.ExpenseItem .type_col {
+  flex: 0.8;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* 내용 설명 */
+.ExpenseItem .description_col {
+  flex: 2;
+  font-size: 16px;
+}
+
+/* 금액 표시 */
+.ExpenseItem .amount_col {
+  flex: 1.2;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: right;
+}
+
+/* 지출 금액 색상 (빨간색) */
+.ExpenseItem.expense .amount_col {
+  color: rgb(220, 53, 69);
+}
+
+/* 수입 금액 색상 (초록색) */
+.ExpenseItem.income .amount_col {
+  color: rgb(40, 167, 69);
+}
+
+/* 날짜 표시 */
+.ExpenseItem .date_col {
+  flex: 1;
+  font-size: 14px;
+  color: rgb(120, 120, 120);
+  text-align: center;
+}
+
+/* 버튼 영역 */
+.ExpenseItem .btn_col {
+  flex: 0.5;
+}
+
+/* 삭제 버튼 */
+.ExpenseItem button {
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  color: white;
+  font-size: 14px;
+  background-color: rgb(255, 80, 80);
+}
+
+.ExpenseItem button:hover {
+  background-color: rgb(255, 50, 50);
+}
