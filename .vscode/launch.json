@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeTyperGPT_Full",
+            "request": "launch",
+            "mainClass": "CodeTyperGPT_Full",
+            "projectName": ""
+        },
+        {
+            "type": "java",
             "name": "UI",
             "request": "launch",
             "mainClass": "UI",

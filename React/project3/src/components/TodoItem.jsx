@@ -1,9 +1,9 @@
 import "./TodoItem.css";
 import { useContext } from "react";
-import { TodoContext } from "../App";
+import {  TodoDispatchContext } from "../App";
 
 function TodoItem({ id, content, isDone, createdDate }) {
-  const { onUpdate, onDelete } = useContext(TodoContext);
+  const { onUpdate, onDelete } = useContext(TodoDispatchContext);
 
   return (
     <div className="TodoItem">

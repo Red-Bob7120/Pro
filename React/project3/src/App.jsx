@@ -1,10 +1,11 @@
-import React, { useReducer, useRef, useCallback } from "react";
+import React, { useMemo,useReducer, useRef, useCallback } from "react";
 import "./App.css";
 import Header from "./components/Header";
 import TodoEditor from "./components/TodoEditor";
 import TodoList from "./components/TodoList";
 
 export const TodoContext = React.createContext();
+
 
 const mockTodo = [
   { id: 0, isDone: false, content: "리액트 공부하기", createdDate: Date.now() },
@@ -29,6 +30,10 @@ function reducer(state, action) {
       return state;
   }
 }
+
+
+export const TodoStateContext = React.createContext();
+export const TodoDispatchContext = React.creacteContext();
 
 function App() {
   const idRef = useRef(3);
@@ -61,13 +66,19 @@ function App() {
     });
   }, []);
 
+  const memoizedDispatches = useMemo(()=>{
+    return {onCreate,onDelete,onUpdate}
+  })
   return (
     <div className="App">
 
       <Header />
-      <TodoContext.Provider value={{ todo, onCreate, onUpdate, onDelete }}>
-        <TodoEditor />
-        <TodoList />
+      <TodoContext.Provider value={ todo }>
+        <TodoDispatchContext value ={memoizedDispatches}>
+          <TodoEditor />
+          <TodoList />
+        </TodoDispatchContext>
+
       </TodoContext.Provider>
     </div>
   );
