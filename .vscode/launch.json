@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "UI",
+            "request": "launch",
+            "mainClass": "UI",
+            "projectName": ""
+        },
+        {
+            "type": "java",
             "name": "ICloudFinalApp_Full",
             "request": "launch",
             "mainClass": "ICloudFinalApp_Full",

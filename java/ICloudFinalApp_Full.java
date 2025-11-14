@@ -20,14 +20,21 @@ import javax.imageio.ImageIO;
 public class ICloudFinalApp_Full extends JFrame {
 
     // ==== UI 컴포넌트 ====
-    private final JButton folderBtn = new JButton("📂 폴더 선택");
+    private final JButton inputBtn  = new JButton("📂 입력 폴더 선택");
+    private final JButton outputBtn = new JButton("📁 출력 폴더 선택");
     private final JButton startBtn  = new JButton("🚀 정리 시작");
-    private final JLabel  topTitle  = new JLabel("☁ iCloud 올리기 전 마지막 단계 (완전판)", SwingConstants.CENTER);
-    private final JLabel  statusLbl = new JLabel("정리할 사진 폴더를 선택하세요.", SwingConstants.CENTER);
-    private final JLabel  liveLog   = new JLabel("대기 중…", SwingConstants.CENTER);
+
+    private final JLabel topTitle  = new JLabel("☁ iCloud 올리기 전 마지막 단계 (완전판)", SwingConstants.CENTER);
+    private final JLabel statusLbl = new JLabel("입력 폴더와 출력 폴더를 선택하세요.", SwingConstants.CENTER);
+    private final JLabel liveLog   = new JLabel("대기 중…", SwingConstants.CENTER);
+    private final JLabel inputLbl  = new JLabel("입력 폴더: (미선택)");
+    private final JLabel outputLbl = new JLabel("출력 폴더: (미선택)");
+
     private final ProgressCircle circle = new ProgressCircle();
 
-    private volatile File rootFolder;
+    // 선택된 폴더
+    private volatile File inputRoot;
+    private volatile File outputRoot;
 
     // ==== 포맷 셋 ====
     private static final Set<String> COMPAT  = setOf("jpg","jpeg","png","heic","heif","gif");
@@ -43,7 +50,7 @@ public class ICloudFinalApp_Full extends JFrame {
 
         setTitle("iCloud 올리기 전 마지막 단계 (완전판)");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(780, 620);
+        setSize(820, 640);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(16, 16));
         getContentPane().setBackground(new Color(248, 249, 252));
@@ -71,30 +78,39 @@ public class ICloudFinalApp_Full extends JFrame {
 
         add(centerPanel, BorderLayout.CENTER);
 
-        // 하단: 한 줄 로그 + 버튼
+        // 하단: 경로 표시 + 로그 + 버튼들
         JPanel bottomPanel = new JPanel();
         bottomPanel.setOpaque(false);
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 12, 12, 12));
+
+        inputLbl.setFont(new Font("Malgun Gothic", Font.PLAIN, 12));
+        outputLbl.setFont(new Font("Malgun Gothic", Font.PLAIN, 12));
+        bottomPanel.add(inputLbl);
+        bottomPanel.add(outputLbl);
 
         liveLog.setFont(new Font("Malgun Gothic", Font.PLAIN, 13));
-        liveLog.setBorder(BorderFactory.createEmptyBorder(4, 8, 8, 8));
+        liveLog.setBorder(BorderFactory.createEmptyBorder(4, 0, 8, 0));
         bottomPanel.add(liveLog);
 
         JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 4));
         buttonRow.setOpaque(false);
-        styleButton(folderBtn, false);
+        styleButton(inputBtn, false);
+        styleButton(outputBtn, false);
         styleButton(startBtn, true);
         startBtn.setEnabled(false);
-        buttonRow.add(folderBtn);
+
+        buttonRow.add(inputBtn);
+        buttonRow.add(outputBtn);
         buttonRow.add(startBtn);
 
         bottomPanel.add(buttonRow);
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
 
         add(bottomPanel, BorderLayout.SOUTH);
 
         // 이벤트
-        folderBtn.addActionListener(this::onSelectFolder);
+        inputBtn.addActionListener(this::onSelectInput);
+        outputBtn.addActionListener(this::onSelectOutput);
         startBtn.addActionListener(this::onStart);
 
         setVisible(true);
@@ -122,54 +138,78 @@ public class ICloudFinalApp_Full extends JFrame {
 
     // ======================= UI 이벤트 =======================
 
-    private void onSelectFolder(ActionEvent e) {
+    private void onSelectInput(ActionEvent e) {
         JFileChooser ch = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
         ch.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        ch.setDialogTitle("정리할 사진 폴더 선택");
+        ch.setDialogTitle("입력(원본) 사진 폴더 선택");
         if (ch.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            rootFolder = ch.getSelectedFile();
-            statusLbl.setText("선택된 폴더: " + rootFolder.getAbsolutePath());
-            startBtn.setEnabled(true);
-            log("폴더 선택: " + rootFolder.getAbsolutePath());
+            inputRoot = ch.getSelectedFile();
+            inputLbl.setText("입력 폴더: " + inputRoot.getAbsolutePath());
+            log("입력 폴더 선택: " + inputRoot.getAbsolutePath());
+            updateStartButton();
+        }
+    }
+
+    private void onSelectOutput(ActionEvent e) {
+        JFileChooser ch = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+        ch.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        ch.setDialogTitle("출력 루트 폴더 선택 (정리본이 저장될 위치)");
+        if (ch.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            outputRoot = ch.getSelectedFile();
+            outputLbl.setText("출력 폴더: " + outputRoot.getAbsolutePath());
+            log("출력 폴더 선택: " + outputRoot.getAbsolutePath());
+            updateStartButton();
+        }
+    }
+
+    private void updateStartButton() {
+        startBtn.setEnabled(inputRoot != null && outputRoot != null);
+        if (inputRoot != null && outputRoot != null) {
+            statusLbl.setText("준비 완료: 정리 시작 버튼을 눌러주세요.");
         }
     }
 
     private void onStart(ActionEvent e) {
-        if (rootFolder == null) return;
+        if (inputRoot == null || outputRoot == null) return;
         startBtn.setEnabled(false);
-        folderBtn.setEnabled(false);
+        inputBtn.setEnabled(false);
+        outputBtn.setEnabled(false);
         circle.setProgress(0.0);
         statusLbl.setText("파일 스캔 중...");
         log("정리 작업을 시작합니다.");
 
-        new Thread(() -> runPipeline(rootFolder)).start();
+        new Thread(() -> runPipeline(inputRoot, outputRoot)).start();
     }
 
     // ======================= 메인 파이프라인 =======================
 
-    private void runPipeline(File root) {
+    private void runPipeline(File input, File outputBase) {
         long globalStartNs = System.nanoTime();
 
-        File outDir  = new File(root, "__iOS_READY");
-        File failDir = new File(root, "__FAILED");
-        outDir.mkdirs();
-        failDir.mkdirs();
+        File readyRoot  = new File(outputBase, "__iOS_READY");
+        File failedRoot = new File(outputBase, "__FAILED");
+        readyRoot.mkdirs();
+        failedRoot.mkdirs();
 
         // 삭제는 마지막에 한 번에 실행
         List<File> trashList = Collections.synchronizedList(new ArrayList<>());
 
-        // 1) 타겟 파일 스캔
+        // 1) 타겟 파일 스캔 (입력 폴더 기준)
         List<Path> all = new ArrayList<>();
         try {
-            Files.walkFileTree(root.toPath(), new SimpleFileVisitor<>() {
+            Files.walkFileTree(input.toPath(), new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    String name = dir.getFileName().toString();
+                    if (name.equals("__iOS_READY") || name.equals("__FAILED")) {
+                        return FileVisitResult.SKIP_SUBTREE;
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     String n = file.getFileName().toString().toLowerCase(Locale.ROOT);
-                    File parent = file.toFile().getParentFile();
-                    String parentName = parent != null ? parent.getName() : "";
-                    if (isTarget(n)
-                            && !parentName.equals("__iOS_READY")
-                            && !parentName.equals("__FAILED")) {
+                    if (isTarget(n)) {
                         all.add(file);
                     }
                     return FileVisitResult.CONTINUE;
@@ -201,8 +241,8 @@ public class ICloudFinalApp_Full extends JFrame {
 
         ConcurrentHashMap<String, Path> seen = new ConcurrentHashMap<>();
 
-        File reportFile  = new File(outDir, "report.txt");
-        File mappingFile = new File(outDir, "mapping.csv");
+        File reportFile  = new File(readyRoot, "report.txt");
+        File mappingFile = new File(readyRoot, "mapping.csv");
 
         try (PrintWriter rep = new PrintWriter(
                     new OutputStreamWriter(new FileOutputStream(reportFile, true), StandardCharsets.UTF_8));
@@ -210,7 +250,8 @@ public class ICloudFinalApp_Full extends JFrame {
                     new OutputStreamWriter(new FileOutputStream(mappingFile, true), StandardCharsets.UTF_8))) {
 
             rep.println("===== 새로운 실행 =====");
-            rep.println("Root: " + root.getAbsolutePath());
+            rep.println("Input Root : " + input.getAbsolutePath());
+            rep.println("Output Root: " + outputBase.getAbsolutePath());
             rep.println("Start: " + now());
 
             int threads = Math.max(4, Runtime.getRuntime().availableProcessors() * 2);
@@ -223,7 +264,7 @@ public class ICloudFinalApp_Full extends JFrame {
                         // 1) 중복 검사 (크기 + 앞 1MB 해시)
                         String key = quickHash(p);
                         if (key != null && seen.putIfAbsent(key, p) != null) {
-                            trashList.add(p.toFile()); // 지금은 삭제하지 않음
+                            trashList.add(p.toFile()); // 입력 폴더의 중복본은 나중에 휴지통
                             dups.incrementAndGet();
                             log("중복 제거 예정: " + name);
                         } else {
@@ -231,14 +272,32 @@ public class ICloudFinalApp_Full extends JFrame {
                             String ext = extLower(name);
                             boolean compat = COMPAT.contains(ext);
                             String ios = iosName(seq.incrementAndGet(), compat ? ext : "jpg");
-                            File dest = new File(outDir, ios);
+                            File dest = new File(readyRoot, ios);
 
                             if (compat) {
                                 Quality q = checkQuality(p);
                                 if (!q.ok) {
-                                    trashList.add(p.toFile());
-                                    dups.incrementAndGet();
-                                    log("품질 제외 예정(" + q.reason + "): " + name);
+                                    if (q.reason.startsWith("read")) {
+                                        // 읽기 실패는 __FAILED/READ_FAIL
+                                        File dir = getFailedDir(failedRoot, "READ_FAIL");
+                                        File fail = new File(dir, name);
+                                        safeMove(p.toFile(), fail);
+                                        failed.incrementAndGet();
+                                        writeMapping(map, p, fail, "READ_FAIL");
+                                        log("읽기 실패(READ_FAIL): " + name);
+                                    } else if ("too-small".equals(q.reason) || "mono".equals(q.reason)) {
+                                        // 너무 작거나 단색 → 삭제 후보
+                                        trashList.add(p.toFile());
+                                        dups.incrementAndGet();
+                                        log("품질 제외 예정(" + q.reason + "): " + name);
+                                    } else {
+                                        File dir = getFailedDir(failedRoot, "UNKNOWN");
+                                        File fail = new File(dir, name);
+                                        safeMove(p.toFile(), fail);
+                                        failed.incrementAndGet();
+                                        writeMapping(map, p, fail, "UNKNOWN");
+                                        log("품질 실패(UNKNOWN): " + name);
+                                    }
                                 } else {
                                     safeMove(p.toFile(), dest);
                                     kept.incrementAndGet();
@@ -247,20 +306,23 @@ public class ICloudFinalApp_Full extends JFrame {
                                 }
                             } else if (CONVERT.contains(ext)) {
                                 if (tryConvertToJpg(p.toFile(), dest)) {
-                                    trashList.add(p.toFile()); // 원본은 나중에 삭제
+                                    // 변환 성공 → 원본은 삭제 후보
+                                    trashList.add(p.toFile());
                                     converted.incrementAndGet();
                                     writeMapping(map, p, dest, "CONVERT");
                                     log("변환: " + name + " → " + dest.getName());
                                 } else {
-                                    File fail = new File(failDir, name);
+                                    // 변환 실패 → __FAILED/CONVERT_FAIL
+                                    File dir = getFailedDir(failedRoot, "CONVERT_FAIL");
+                                    File fail = new File(dir, name);
                                     safeMove(p.toFile(), fail);
                                     failed.incrementAndGet();
-                                    writeMapping(map, p, fail, "FAIL");
-                                    log("변환 실패(FAIL로 이동): " + name);
+                                    writeMapping(map, p, fail, "CONVERT_FAIL");
+                                    log("변환 실패(CONVERT_FAIL): " + name);
                                 }
                             } else {
                                 // 기타 포맷은 이름만 iOS 형식으로 맞춰 이동
-                                File keepFile = new File(outDir, iosName(seq.get(), ext));
+                                File keepFile = new File(readyRoot, iosName(seq.get(), ext));
                                 safeMove(p.toFile(), keepFile);
                                 kept.incrementAndGet();
                                 writeMapping(map, p, keepFile, "OTHER");
@@ -269,12 +331,13 @@ public class ICloudFinalApp_Full extends JFrame {
                         }
                     } catch (Exception ex) {
                         try {
-                            File fail = new File(failDir, name);
+                            File dir = getFailedDir(failedRoot, "ERROR");
+                            File fail = new File(dir, name);
                             if (Files.exists(p)) safeMove(p.toFile(), fail);
                             failed.incrementAndGet();
                             writeMapping(map, p, fail, "ERROR");
                         } catch (Exception ignore) {}
-                        log("오류: " + name + " → " + ex.getMessage());
+                        log("오류(ERROR): " + name + " → " + ex.getMessage());
                     } finally {
                         int d = done.incrementAndGet();
                         updateProgress(globalStartNs, d, total);
@@ -300,7 +363,8 @@ public class ICloudFinalApp_Full extends JFrame {
             double sec  = elapsedNs / 1e9;
             double rate = done.get() > 0 ? done.get() / sec : 0.0;
 
-            rep.printf(Locale.ROOT, "Total: %d, Kept: %d, Converted: %d, Duplicates: %d, Failed: %d%n",
+            rep.printf(Locale.ROOT,
+                    "Total: %d, Kept: %d, Converted: %d, Duplicates/QualityRemoved: %d, Failed: %d%n",
                     done.get(), kept.get(), converted.get(), dups.get(), failed.get());
             rep.printf(Locale.ROOT, "Trash moved: %d%n", trashList.size());
             rep.printf(Locale.ROOT, "Elapsed: %.1fs, Rate: %.1f files/s%n", sec, rate);
@@ -310,7 +374,7 @@ public class ICloudFinalApp_Full extends JFrame {
             ui(() -> {
                 circle.setProgress(1.0);
                 statusLbl.setText(String.format(
-                        "정리 완료: 총 %d개 / 유지 %d / 변환 %d / 중복 %d / 실패 %d / 삭제 %d",
+                        "정리 완료: 총 %d개 / 유지 %d / 변환 %d / 제외 %d / 실패 %d / 삭제 %d",
                         done.get(), kept.get(), converted.get(), dups.get(), failed.get(), trashList.size()
                 ));
                 log(String.format("완료: %.1f초, 평균 속도 %.1f개/초", sec, rate));
@@ -327,8 +391,9 @@ public class ICloudFinalApp_Full extends JFrame {
 
     private void resetButtons() {
         ui(() -> {
-            folderBtn.setEnabled(true);
-            startBtn.setEnabled(rootFolder != null);
+            inputBtn.setEnabled(true);
+            outputBtn.setEnabled(true);
+            updateStartButton();
         });
     }
 
@@ -430,6 +495,24 @@ public class ICloudFinalApp_Full extends JFrame {
         double var  = sumSq / (double) cnt - mean * mean;
         if (var < MONO_VAR) return new Quality(false, "mono");
         return new Quality(true, "ok");
+    }
+
+    // 실패 원인별 폴더
+    private File getFailedDir(File failedRoot, String reasonKey) {
+        String folder;
+        switch (reasonKey) {
+            case "READ_FAIL":
+                folder = "READ_FAIL"; break;
+            case "CONVERT_FAIL":
+                folder = "CONVERT_FAIL"; break;
+            case "ERROR":
+                folder = "ERROR"; break;
+            default:
+                folder = "UNKNOWN"; break;
+        }
+        File dir = new File(failedRoot, folder);
+        dir.mkdirs();
+        return dir;
     }
 
     private void moveToTrash(File f) {

@@ -1,7 +1,0 @@
-/* 금액 입력 필드 */
-.App .AmountInput input {
-  width: 40%;
-  font-size: 1em;
-  box-sizing: border-box;
-  margin-left: 20px;
-}
