@@ -5,7 +5,8 @@ import TodoEditor from "./components/TodoEditor";
 import TodoList from "./components/TodoList";
 
 export const TodoContext = React.createContext();
-
+export const TodoStateContext = React.createContext();
+export const TodoDispatchContext = React.createContext();
 
 const mockTodo = [
   { id: 0, isDone: false, content: "리액트 공부하기", createdDate: Date.now() },
@@ -30,11 +31,6 @@ function reducer(state, action) {
       return state;
   }
 }
-
-
-export const TodoStateContext = React.createContext();
-export const TodoDispatchContext = React.creacteContext();
-
 function App() {
   const idRef = useRef(3);
   const [todo, dispatch] = useReducer(reducer, mockTodo);
@@ -78,7 +74,6 @@ function App() {
           <TodoEditor />
           <TodoList />
         </TodoDispatchContext>
-
       </TodoContext.Provider>
     </div>
   );

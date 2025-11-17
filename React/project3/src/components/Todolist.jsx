@@ -1,17 +1,15 @@
-import "./TodoList.css";
 import { useContext, useMemo, useState } from "react";
 import {  TodoStateContext } from "../App";
 import TodoItem from "./TodoItem";
+import "./TodoList.css";
 
 function TodoList() {
   const { todo } = useContext(TodoStateContext);
-
   const [search, setSearch] = useState("");
 
   const filteredTodo = todo.filter((it) =>
     it.content.toLowerCase().includes(search.toLowerCase())
   );
-
   const analysis = useMemo(() => {
     const total = todo.length;
     const done = todo.filter((it) => it.isDone).length;
